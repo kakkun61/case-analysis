@@ -26,12 +26,12 @@ newtype Fun xss r = Fun { unFun :: FunS xss r }
 type FunP :: [Type] -> Type -> Type
 type family FunP xs r where
   FunP '[] r = r
-  FunP (x ': xs) r = x -> FunP xs r
+  FunP (x : xs) r = x -> FunP xs r
 
 type FunS :: [[Type]] -> Type -> Type
 type family FunS xss r where
   FunS '[] r = r
-  FunS (xs ': xss) r = FunP xs r -> FunS xss r
+  FunS (xs : xss) r = FunP xs r -> FunS xss r
 
 type GFold :: [[Type]] -> Constraint
 class GFold xss where
@@ -40,7 +40,7 @@ class GFold xss where
 instance GFold '[] where
   gfold' _ = Fun undefined
 
-instance (Apply xs, Embed xss, GFold xss) => GFold (xs ': xss) where
+instance (Apply xs, Embed xss, GFold xss) => GFold (xs : xss) where
   gfold' (SOP (S xs)) = constFun (gfold' (SOP xs))
   gfold' (SOP (Z x))  = embed (Fun $ \f -> apply f x)
 
@@ -51,21 +51,21 @@ class Apply xs where
 instance Apply '[] where
   apply r _ = r
 
-instance Apply xs => Apply (x ': xs) where
+instance Apply xs => Apply (x : xs) where
   apply f ((I x) :* xs) = apply (f x) xs
 
 type Embed :: [[Type]] -> Constraint
 class Embed xss where
-  embed :: Fun (xs ': '[]) r -> Fun (xs ': xss) r
+  embed :: Fun '[xs] r -> Fun (xs : xss) r
 
 instance Embed '[] where
   embed = id
 
-instance Embed xss => Embed (xs ': xss) where
+instance Embed xss => Embed (xs : xss) where
   embed = flipFun . constFun . embed
 
-flipFun :: Fun (xs ': ys ': xss) r -> Fun (ys ': xs ': xss) r
+flipFun :: Fun (xs : ys : xss) r -> Fun (ys : xs : xss) r
 flipFun f = Fun $ \ys xs -> unFun f xs ys
 
-constFun :: Fun xss r -> Fun (xs ': xss) r
+constFun :: Fun xss r -> Fun (xs : xss) r
 constFun (Fun f) = Fun $ const f
