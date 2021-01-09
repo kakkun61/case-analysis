@@ -1,4 +1,4 @@
-# Changelog for haskell-project-template
+# Changelog for case-analysis
 
 ## 0.1.0.0
 

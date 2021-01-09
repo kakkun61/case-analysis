@@ -29,7 +29,7 @@ format:
 
 .PHONY: lint
 lint:
-	hlint src app
+	hlint src
 
 .PHONY: doc
 doc:
